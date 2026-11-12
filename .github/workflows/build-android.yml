@@ -1,0 +1,40 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Gerar pasta nativa (Prebuild)
+        run: npx expo prebuild --platform android --clean
+
+      - name: Compilar APK (Release)
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Upload do APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
